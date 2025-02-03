@@ -1551,36 +1551,30 @@ EOF
 ### Selecting a random site
 ###################################
 random_site() {
-  info " $(text 79) "
-  mkdir -p /var/www/html/ /usr/local/reverse_proxy/
+  msg_inf "Разворачиваем лендинг из локального архива..."
+  mkdir -p /var/www/html /usr/local/reverse_proxy
 
-  cd /usr/local/reverse_proxy/ || echo "Не удалось перейти в /usr/local/reverse_proxy/"
-
-  if [[ ! -d "simple-web-templates-main" ]]; then
-      while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/cortez24rus/simple-web-templates/archive/refs/heads/main.zip"; do
-        warning " $(text 38) "
-        sleep 3
-      done
-      unzip -q main.zip &>/dev/null && rm -f main.zip
+  if [[ -f "landing-ideaplex.zip" ]]; then
+      msg_inf "Переносим landing-ideaplex.zip в /usr/local/reverse_proxy/..."
+      mv landing-ideaplex.zip /usr/local/reverse_proxy/
   fi
 
-  cd simple-web-templates-main || echo "Не удалось перейти в папку с шаблонами"
+  cd /usr/local/reverse_proxy || { msg_err "Не удалось перейти в /usr/local/reverse_proxy"; return 1; }
 
-  rm -rf assets ".gitattributes" "README.md" "_config.yml"
-
-  RandomHTML=$(ls -d */ | shuf -n1)  # Обновил для выбора случайного подкаталога
-  info " $(text 80) ${RandomHTML}"
-
-  # Если шаблон существует, копируем его в /var/www/html
-  if [[ -d "${RandomHTML}" && -d "/var/www/html/" ]]; then
-      echo "Копируем шаблон в /var/www/html/..."
-      rm -rf /var/www/html/*  # Очищаем старую папку
-      cp -a "${RandomHTML}/." /var/www/html/ || echo "Ошибка при копировании шаблона"
-  else
-      echo "Ошибка при извлечении шаблона!"
+  if [[ ! -f "landing-ideaplex.zip" ]]; then
+      msg_err "Файл landing-ideaplex.zip не найден! Поместите его в /usr/local/reverse_proxy и попробуйте снова."
+      return 1
   fi
 
-  cd ~
+  msg_inf "Распаковываем landing-ideaplex.zip..."
+  rm -rf landing-ideaplex
+  unzip -q landing-ideaplex.zip -d landing-ideaplex || { msg_err "Ошибка при распаковке"; return 1; }
+
+  msg_inf "Копируем содержимое в /var/www/html/..."
+  rm -rf /var/www/html/*
+  cp -a landing-ideaplex/. /var/www/html/ || { msg_err "Ошибка при копировании"; return 1; }
+
+  msg_ok "Лендинг успешно установлен!"
 }
 
 ###################################
