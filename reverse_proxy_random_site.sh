@@ -1,58 +1,42 @@
 #!/bin/bash
 
-### INFO ###
-Green="\033[32m"
-Red="\033[31m"
-Yellow="\e[1;33m"
-Blue="\033[36m"
-Orange="\033[38;5;214m"
-Font="\e[0m"
+msg_inf() {
+    echo "[INFO] $1"
+}
 
-OK="${Green}[OK]${Font}"
-ERROR="${Red}[!]${Font}"
-QUESTION="${Green}[?]${Font}"
+msg_err() {
+    echo "[ERROR] $1" >&2
+}
 
-function msg_banner()    { echo -e "${Yellow} $1 ${Font}"; }
-function msg_ok()        { echo -e "${OK} ${Blue} $1 ${Font}"; }
-function msg_err()       { echo -e "${ERROR} ${Orange} $1 ${Font}"; }
-function msg_inf()       { echo -e "${QUESTION} ${Yellow} $1 ${Font}"; }
-function msg_out()       { echo -e "${Green} $1 ${Font}"; }
-function msg_tilda()     { echo -e "${Orange}$1${Font}"; }
+msg_ok() {
+    echo "[OK] $1"
+}
 
-msg_banner "Обновляем пакеты и устанавливаем zip..."
-apt-get update -y && apt-get install -y zip wget unzip || { msg_err "Ошибка при установке пакетов"; exit 1; }
+random_site() {
+    msg_inf "Разворачиваем лендинг из локального архива..."
+    mkdir -p /var/www/html /usr/local/reverse_proxy
 
-msg_banner "Создаем необходимые папки..."
-mkdir -p /var/www/html/ /usr/local/reverse_proxy/
+    if [[ -f "landing-ideaplex.zip" ]]; then
+        msg_inf "Переносим landing-ideaplex.zip в /usr/local/reverse_proxy/..."
+        mv landing-ideaplex.zip /usr/local/reverse_proxy/
+    fi
 
-cd /usr/local/reverse_proxy/ || { msg_err "Не удалось перейти в /usr/local/reverse_proxy/"; exit 1; }
+    cd /usr/local/reverse_proxy || { msg_err "Не удалось перейти в /usr/local/reverse_proxy"; return 1; }
 
-if [[ ! -d "simple-web-templates-main" ]]; then
-    msg_inf "Скачиваем шаблоны..."
-    while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/cortez24rus/simple-web-templates/archive/refs/heads/main.zip"; do
-        msg_err "Скачивание не удалось, пробуем снова..."
-        sleep 3
-    done
-    unzip -q main.zip &>/dev/null && rm -f main.zip
-fi
+    if [[ ! -f "landing-ideaplex.zip" ]]; then
+        msg_err "Файл landing-ideaplex.zip не найден! Поместите его в /usr/local/reverse_proxy и попробуйте снова."
+        return 1
+    fi
 
-cd simple-web-templates-main || { msg_err "Не удалось перейти в папку с шаблонами"; exit 1; }
+    msg_inf "Распаковываем landing-ideaplex.zip..."
+    rm -rf landing-ideaplex
+    unzip -q landing-ideaplex.zip -d landing-ideaplex || { msg_err "Ошибка при распаковке"; return 1; }
 
-msg_inf "Удаляем ненужные файлы..."
-rm -rf assets ".gitattributes" "README.md" "_config.yml"
+    msg_inf "Копируем содержимое в /var/www/html/..."
+    rm -rf /var/www/html/*
+    cp -a landing-ideaplex/. /var/www/html/ || { msg_err "Ошибка при копировании"; return 1; }
 
-RandomHTML=$(ls -d */ | shuf -n1)  # Обновил для выбора случайного подкаталога
-msg_inf "Random template name: ${RandomHTML}"
+    msg_ok "Лендинг успешно установлен!"
+}
 
-# Если шаблон существует, копируем его в /var/www/html
-if [[ -d "${RandomHTML}" && -d "/var/www/html/" ]]; then
-    msg_inf "Копируем шаблон в /var/www/html/..."
-    rm -rf /var/www/html/*  # Очищаем старую папку
-    cp -a "${RandomHTML}/." /var/www/html/ || { msg_err "Ошибка при копировании шаблона"; exit 1; }
-    msg_ok "Шаблон успешно извлечен и установлен!"
-else
-    msg_err "Ошибка при извлечении шаблона!"
-    exit 1
-fi
-
-cd ~ || { msg_err "Не удалось вернуться в домашнюю директорию"; exit 1; }
+random_site
