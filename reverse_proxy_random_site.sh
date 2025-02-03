@@ -11,8 +11,7 @@ msg_err() {
 msg_ok() {
     echo "[OK] $1"
 }
-
-random_site() {
+apt-get update -y && apt-get install -y zip wget unzip
     msg_inf "Разворачиваем лендинг из локального архива..."
     mkdir -p /var/www/html /usr/local/reverse_proxy
 
@@ -37,6 +36,4 @@ random_site() {
     cp -a landing-ideaplex/. /var/www/html/ || { msg_err "Ошибка при копировании"; return 1; }
 
     msg_ok "Лендинг успешно установлен!"
-}
 
-random_site
