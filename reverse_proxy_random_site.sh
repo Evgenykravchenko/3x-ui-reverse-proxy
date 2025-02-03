@@ -13,27 +13,30 @@ msg_ok() {
 }
 apt-get update -y && apt-get install -y zip wget unzip
     msg_inf "Разворачиваем лендинг из локального архива..."
+   rm -rf /var/www/
     mkdir -p /var/www/html /usr/local/reverse_proxy
 
-    if [[ -f "landing-ideaplex.zip" ]]; then
-        msg_inf "Переносим landing-ideaplex.zip в /usr/local/reverse_proxy/..."
-        mv landing-ideaplex.zip /usr/local/reverse_proxy/
-    fi
+     if [[ ! -d "landing-ideaplex" ]]; then
+      while ! cp /root/3x-ui-reverse-proxy/landing-ideaplex.zip /usr/local/reverse_proxy/; do
+        warning " $(text 38) "
+        sleep 3
+      done
+      unzip -q landing-ideaplex.zip &>/dev/null && rm -f landing-ideaplex.zip
+  fi
 
-    cd /usr/local/reverse_proxy || { msg_err "Не удалось перейти в /usr/local/reverse_proxy"; return 1; }
+  cd landing-ideaplex/ || echo "Не удалось перейти в папку с шаблоном"
 
-    if [[ ! -f "landing-ideaplex.zip" ]]; then
-        msg_err "Файл landing-ideaplex.zip не найден! Поместите его в /usr/local/reverse_proxy и попробуйте снова."
-        return 1
-    fi
 
-    msg_inf "Распаковываем landing-ideaplex.zip..."
-    rm -rf landing-ideaplex
-    unzip -q landing-ideaplex.zip -d landing-ideaplex || { msg_err "Ошибка при распаковке"; return 1; }
 
-    msg_inf "Копируем содержимое в /var/www/html/..."
-    rm -rf /var/www/html/*
-    cp -a landing-ideaplex/. /var/www/html/ || { msg_err "Ошибка при копировании"; return 1; }
+  info " $(text 80) landing-ideaplex"
 
-    msg_ok "Лендинг успешно установлен!"
+  # Копируем шаблон в /var/www/html
+  if [[ -d "/var/www/html/" ]]; then
+      echo "Копируем шаблон в /var/www/html/..."
+      rm -rf /var/www/html/*  # Очищаем старую папку
+      cp -a . /var/www/html/ || echo "Ошибка при копировании шаблона"
+  else
+      echo "Ошибка при извлечении шаблона!"
+  fi
 
+  cd ~
