@@ -93,12 +93,12 @@ Usage: reverse_proxy_server.sh [-u|--utils <true|false>] [-d|--dns <true|false>]
 
 To begin configuring the server, simply run the following command in a terminal:
 ```sh
-bash <(curl -Ls https://raw.githubusercontent.com/cortez24rus/xui-reverse-proxy/refs/heads/main/reverse_proxy_server.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/Evgenykravchenko/3x-ui-reverse-proxy/refs/heads/main/reverse_proxy_server.sh)
 ```
 
 ### Installing a random template for the website:
 ```sh
-bash <(curl -Ls https://raw.githubusercontent.com/cortez24rus/xui-reverse-proxy/refs/heads/main/reverse_proxy_random_site.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/Evgenykravchenko/3x-ui-reverse-proxy/refs/heads/main/reverse_proxy_random_site.sh)
 ```
 
 The script will then prompt you for the necessary configuration information:
