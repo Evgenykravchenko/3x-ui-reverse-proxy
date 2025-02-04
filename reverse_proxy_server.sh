@@ -14,8 +14,7 @@ declare -A generate
 ###################################
 ### Regex Patterns for Validation
 ###################################
-# Обновленное регулярное выражение для поддержки многоуровневых доменов
-regex[domain]="^([a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+\.[a-zA-Z]{2,})$"
+regex[domain]="^([a-zA-Z0-9-]+)\.([a-zA-Z0-9-]+\.[a-zA-Z]{2,})$"
 regex[port]="^[1-9][0-9]*$"
 regex[warp_license]="^[a-zA-Z0-9]{8}-[a-zA-Z0-9]{8}-[a-zA-Z0-9]{8}$"
 regex[username]="^[a-zA-Z0-9]+$"
@@ -186,8 +185,8 @@ E[69]="Enter the Telegram bot token for IP limit, Torrent ban:"
 R[69]="Введите токен Telegram бота для IP limit, Torrent ban:"
 E[70]="Secret key:"
 R[70]="Секретный ключ:"
-E[71]="Current operating system is \$SYS.\\\n The system lower than \$SYSTEM \${MAJOR[int]} is not supported. Feedback: [https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/issues]"
-R[71]="Текущая операционная система: \$SYS.\\\n Система с версией ниже, чем \$SYSTEM \${MAJOR[int]}, не поддерживается. Обратная связь: [https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/issues]"
+E[71]="Current operating system is \$SYS.\\\n The system lower than \$SYSTEM \${MAJOR[int]} is not supported. Feedback: [https://github.com/cortez24rus/xui-reverse-proxy/issues]"
+R[71]="Текущая операционная система: \$SYS.\\\n Система с версией ниже, чем \$SYSTEM \${MAJOR[int]}, не поддерживается. Обратная связь: [https://github.com/cortez24rus/xui-reverse-proxy/issues]"
 E[72]="Install dependence-list:"
 R[72]="Список зависимостей для установки:"
 E[73]="All dependencies already exist and do not need to be installed additionally."
@@ -363,7 +362,7 @@ parse_args() {
   eval set -- "$opts"
   while true; do
     case $1 in
-      -u|--utils)
+      -f|--utils)
         args[utils]="$2"
         normalize_case utils
         validate_true_false utils "$2" || return 1
@@ -429,7 +428,7 @@ parse_args() {
         validate_true_false panel "$2" || return 1
         shift 2
         ;;
-      -f|--firewall)
+      -u|--firewall)
         args[firewall]="$2"
         normalize_case firewall
         validate_true_false firewall "$2" || return 1
@@ -577,7 +576,7 @@ check_dependencies() {
 ###################################
 check_root() {
   if [[ $EUID -ne 0 ]]; then
-    error " $(text 2) "
+    error " $(text 8) "
   fi
 }
 
@@ -647,7 +646,7 @@ get_test_response() {
 ### Domain validation in cloudflare
 ###################################
 check_cf_token() {
-  while ! echo "$test_response" | grep -qE "\"${DOMAIN}\"|\"#dns_records:edit\"|\"#dns_records:read\"|\"#zone:read\""; do
+  while ! echo "$test_response" | grep -qE "\"${testdomain}\"|\"#dns_records:edit\"|\"#dns_records:read\"|\"#zone:read\""; do
     local temp_domain
     DOMAIN=""
     SUBDOMAIN=""
@@ -660,11 +659,11 @@ check_cf_token() {
     temp_domain=$(echo "$temp_domain" | sed -E 's/^https?:\/\///' | sed -E 's/(:[0-9]+)?(\/[a-zA-Z0-9_\-\/]+)?$//')
 
     if [[ "$temp_domain" =~ ${regex[domain]} ]]; then
-      DOMAIN="$temp_domain"               # Устанавливаем полный домен
-      SUBDOMAIN="www.$DOMAIN"             # Поддомен www для полного домена
+      SUBDOMAIN="$temp_domain"           # Весь домен сохраняем в SUBDOMAIN
+      DOMAIN="${BASH_REMATCH[2]}"        # Извлекаем домен второго уровня
     else
-      DOMAIN="$temp_domain"               # В случае, если домен не соответствует шаблону
-      SUBDOMAIN="www.$DOMAIN"             # Все равно устанавливаем www поддомен
+      DOMAIN="$temp_domain"              # Если это домен второго уровня, то просто сохраняем
+      SUBDOMAIN="www.$temp_domain"       # Для домена второго уровня подставляем www в SUBDOMAIN
     fi
 
     while [[ -z $EMAIL ]]; do
@@ -1037,7 +1036,7 @@ dns_adguard_home() {
   HASH=$(htpasswd -B -C 10 -n -b ${USERNAME} ${PASSWORD} | cut -d ":" -f 2)
 
   rm -f AdGuardHome/AdGuardHome.yaml
-  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/raw/refs/heads/main/adh/AdGuardHome.yaml" -O AdGuardHome/AdGuardHome.yaml; do
+  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/cortez24rus/xui-reverse-proxy/raw/refs/heads/main/adh/AdGuardHome.yaml" -O AdGuardHome/AdGuardHome.yaml; do
     warning " $(text 38) "
     sleep 3
   done
@@ -1111,6 +1110,7 @@ add_user() {
     Debian|Ubuntu)
       useradd -m -s $(which bash) -G sudo ${USERNAME}
       ;;
+
     CentOS|Fedora)
       useradd -m -s $(which bash) -G wheel ${USERNAME}
       ;;
@@ -1207,7 +1207,7 @@ warp() {
   mkdir -p /usr/local/reverse_proxy/
   mkdir -p /etc/systemd/system/warp-svc.service.d
   cd /usr/local/reverse_proxy/
-  
+
   case "$SYSTEM" in
     Debian|Ubuntu)
       while ! wget --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://pkg.cloudflareclient.com/pool/$(grep "VERSION_CODENAME=" /etc/os-release | cut -d "=" -f 2)/main/c/cloudflare-warp/cloudflare-warp_2024.6.497-1_amd64.deb"; do
@@ -1294,9 +1294,17 @@ EOF
     fi
   done
 
-  # Добавление задачи в crontab для автоматического обновления сертификатов с перезагрузкой NGINX
-  { crontab -l 2>/dev/null; echo "0 5 1 */2 * certbot renew --quiet --deploy-hook \"systemctl reload nginx\"" ; } | crontab -
+  { crontab -l; echo "0 5 1 */2 * certbot -q renew"; } | crontab -
   tilda "$(text 10)"
+#  if [[ "${nginx_or_haproxy}" == "1" ]]; then
+#    echo "renew_hook = systemctl reload nginx" >> /etc/letsencrypt/renewal/${DOMAIN}.conf
+#    echo ""
+#    openssl dhparam -out /etc/nginx/dhparam.pem 2048
+#  else
+#    echo "renew_hook = cat /etc/letsencrypt/live/${DOMAIN}/fullchain.pem /etc/letsencrypt/live/${DOMAIN}/privkey.pem > /etc/haproxy/certs/${DOMAIN}.pem && systemctl restart haproxy" >> /etc/letsencrypt/renewal/${DOMAIN}.conf
+#    echo ""
+#    openssl dhparam -out /etc/haproxy/dhparam.pem 2048
+#  fi
 }
 
 ###################################
@@ -1337,6 +1345,7 @@ nginx_setup() {
     Debian|Ubuntu)
       USERNGINX="www-data"
       ;;
+
     CentOS|Fedora)
       USERNGINX="nginx"
       ;;
@@ -1750,13 +1759,22 @@ UPDATE settings SET value = '${SUB_JSON_URI}' WHERE LOWER(key) LIKE '%subjsonuri
 EOF
 }
 
+# json_rules() {
+#   SUB_JSON_RULES=$(cat <<EOF
+# [{"type":"field","outboundTag":"direct","domain":["keyword:xn--","keyword:ru","keyword:su","keyword:kg","keyword:by","keyword:kz","keyword:rt","keyword:yandex","keyword:avito.","keyword:2gis.","keyword:gismeteo.","keyword:livejournal."]},{"type":"field","outboundTag":"direct","domain":["domain:ru","domain:su","domain:kg","domain:by","domain:kz"]},{"type":"field","outboundTag":"direct","domain":["geosite:category-ru","geosite:category-gov-ru","geosite:yandex","geosite:vk","geosite:whatsapp","geosite:apple","geosite:mailru","geosite:github","geosite:gitlab","geosite:duckduckgo","geosite:google","geosite:wikimedia","geosite:mozilla"]},{"type":"field","outboundTag":"direct","ip":["geoip:private","geoip:ru"]}]
+# EOF
+#   )
+# }
+# UPDATE settings SET value = '${SUB_JSON_RULES}' WHERE LOWER(key) LIKE '%subjsonrules%';
+#   json_rules
+
 ###################################
 ### Panel installation
 ###################################
 install_panel() {
   info " $(text 46) "
 
-  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused https://raw.githubusercontent.com/Evgenykravchenko/3x-ui-reverse-proxy/refs/heads/main/database/x-ui.db; do
+  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused https://raw.githubusercontent.com/cortez24rus/xui-reverse-proxy/refs/heads/main/database/x-ui.db; do
       warning " $(text 38) "
       sleep 3
   done
@@ -1874,7 +1892,7 @@ EOF
 ###################################
 install_bot() {
   info " $(text 57) "
-  bash <(curl -Ls https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/raw/refs/heads/main/reverse_proxy_bot.sh) "$BOT_TOKEN" "$ADMIN_ID" "$DOMAIN"
+  bash <(curl -Ls https://github.com/cortez24rus/xui-reverse-proxy/raw/refs/heads/main/reverse_proxy_bot.sh) "$BOT_TOKEN" "$ADMIN_ID" "$DOMAIN"
   tilda "$(text 10)"
 }
 
