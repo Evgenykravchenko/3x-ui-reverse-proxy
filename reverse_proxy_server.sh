@@ -1756,7 +1756,7 @@ EOF
 install_panel() {
   info " $(text 46) "
 
-  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/refs/heads/main/database/x-ui.db; do
+  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused https://raw.githubusercontent.com/Evgenykravchenko/3x-ui-reverse-proxy/refs/heads/main/database/x-ui.db; do
       warning " $(text 38) "
       sleep 3
   done
