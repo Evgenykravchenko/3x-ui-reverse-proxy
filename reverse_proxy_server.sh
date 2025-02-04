@@ -1570,13 +1570,13 @@ random_site() {
   rm -rf landing-ideaplex
   unzip -q landing-ideaplex.zip -d landing-ideaplex || { msg_err "Ошибка при распаковке"; return 1; }
 
-cd landing-ideaplex/
   
   msg_inf "Копируем содержимое в /var/www/html/..."
   rm -rf /var/www/html/*
-  cp -a landing-ideaplex/. /var/www/html/ || { msg_err "Ошибка при копировании"; return 1; }
+  cp -a landing-ideaplex/* /var/www/html/ || { msg_err "Ошибка при копировании"; return 1; }
 
   msg_ok "Лендинг успешно установлен!"
+  cd ~
 }
 
 ###################################
