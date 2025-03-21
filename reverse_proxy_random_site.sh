@@ -18,7 +18,7 @@ apt-get update -y && apt-get install -y zip wget unzip
 
  if [[ -f "landing-ideaplex.zip" ]]; then
       msg_inf "Переносим landing-ideaplex.zip в /usr/local/reverse_proxy/..."
-      mv ./landing-ideaplex.zip /usr/local/reverse_proxy/
+      mv ./3x-ui-reverse-proxy/landing-ideaplex.zip /usr/local/reverse_proxy/
   fi
  
     cd /usr/local/reverse_proxy || { msg_err "Не удалось перейти в /usr/local/reverse_proxy"; return 1; }
