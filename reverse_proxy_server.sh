@@ -1373,7 +1373,7 @@ events {
 http {
   map \$request_uri \$cleaned_request_uri {
     default \$request_uri;
-    "~^(.*?)(\?x_padding=[^ ]*)\$" \$1;
+    '~^(.*?)(\\?x_padding=[^ ]*)\$' \$1;
   }
   log_format json_analytics escape=json '{'
     '\$time_local, '
