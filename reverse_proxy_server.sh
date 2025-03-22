@@ -186,7 +186,7 @@ E[69]="Enter the Telegram bot token for IP limit, Torrent ban:"
 R[69]="Введите токен Telegram бота для IP limit, Torrent ban:"
 E[70]="Secret key:"
 R[70]="Секретный ключ:"
-E[71]="Current operating system is \$SYS.\\\n The system lower than \$SYSTEM \${MAJOR[int]} is not supported. Feedback: [//github.com/Evgenykravchenko/3x-ui-reverse-proxy/issues]"
+E[71]="Current operating system is \$SYS.\\\n The system lower than \$SYSTEM \${MAJOR[int]} is not supported. Feedback: [https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/issues]"
 R[71]="Текущая операционная система: \$SYS.\\\n Система с версией ниже, чем \$SYSTEM \${MAJOR[int]}, не поддерживается. Обратная связь: [https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/issues]"
 E[72]="Install dependence-list:"
 R[72]="Список зависимостей для установки:"
@@ -1037,7 +1037,7 @@ dns_adguard_home() {
   HASH=$(htpasswd -B -C 10 -n -b ${USERNAME} ${PASSWORD} | cut -d ":" -f 2)
 
   rm -f AdGuardHome/AdGuardHome.yaml
-  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "ttps://github.com/Evgenykravchenko/3x-ui-reverse-proxy/raw/refs/heads/main/adh/AdGuardHome.yaml"" -O AdGuardHome/AdGuardHome.yaml; do
+  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/raw/refs/heads/main/adh/AdGuardHome.yaml"" -O AdGuardHome/AdGuardHome.yaml; do
     warning " $(text 38) "
     sleep 3
   done
