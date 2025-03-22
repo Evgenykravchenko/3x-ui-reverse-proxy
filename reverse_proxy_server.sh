@@ -1037,7 +1037,7 @@ dns_adguard_home() {
   HASH=$(htpasswd -B -C 10 -n -b ${USERNAME} ${PASSWORD} | cut -d ":" -f 2)
 
   rm -f AdGuardHome/AdGuardHome.yaml
-  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/raw/refs/heads/main/adh/AdGuardHome.yaml"" -O AdGuardHome/AdGuardHome.yaml; do
+  while ! wget -q --progress=dot:mega --timeout=30 --tries=10 --retry-connrefused "https://github.com/Evgenykravchenko/3x-ui-reverse-proxy/raw/refs/heads/main/adh/AdGuardHome.yaml" -O AdGuardHome/AdGuardHome.yaml; do
     warning " $(text 38) "
     sleep 3
   done
