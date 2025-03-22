@@ -2,7 +2,7 @@
 # wget -N https://git && bash .sh d
 export DEBIAN_FRONTEND=noninteractive
 defaults_file="/usr/local/reverse_proxy/reinstall_defaults.conf"
-
+VERSION=v2.4.11
 ###################################
 ### Initialization and Declarations
 ###################################
@@ -1759,8 +1759,7 @@ install_panel() {
       sleep 3
   done
   
-  echo -e "n" | bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) > /dev/null 2>&1
-
+  echo -e "n" | bash <(curl -sS "https://raw.githubusercontent.com/mhsanaei/3x-ui/$VERSION/install.sh") $VERSION > /dev/null 2>&1
   settings_steal
   settings_xtls
   sniffing_inbounds
